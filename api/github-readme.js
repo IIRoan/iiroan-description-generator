@@ -36,6 +36,16 @@ module.exports = async (req, res) => {
     const data = userData.data;
     const repos = reposData.data;
 
+    // Fetch the avatar image and convert it to base64
+    const avatarResponse = await axios.get(data.avatar_url, {
+      responseType: 'arraybuffer',
+      headers,
+    });
+    const avatarBase64 = Buffer.from(avatarResponse.data, 'binary').toString('base64');
+
+    // Determine the content type of the image
+    const avatarMimeType = avatarResponse.headers['content-type'] || 'image/png';
+
     // Fetch languages for each repo
     let languageBytes = {};
 
@@ -105,17 +115,13 @@ module.exports = async (req, res) => {
         y: 140,
         svg: `
           <svg width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37
-            3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54
-            6.44-7A5.44 5.44 0 0 0 20 4.77
-            5.07 5.07 0 0 0 19.91
-            1S18.73.65 16 2.48a13.38
-            13.38 0 0 0-7 0C6.27.65
-            5.09 1 5.09 1A5.07 5.07 0 0
-            0 5 4.77a5.44 5.44 0 0
-            0-1.5 3.78c0 5.42 3.3 6.61
-            6.44 7A3.37 3.37 0 0
-            0 9 18.13V22">
+            <path d="M9 19c-5 1.5-5-2.5-7-3
+              m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61
+              c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77
+              A5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48
+              a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1
+              A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78
+              c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22">
             </path>
           </svg>
         `,
@@ -128,10 +134,10 @@ module.exports = async (req, res) => {
           <svg width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"></circle>
             <line x1="2" y1="12" x2="22" y2="12"></line>
-            <path d="M12 2a15.3 15.3 0 0
-            1 4 10 15.3 15.3 0 0
-            1-4 10 15.3 15.3 0 0
-            1-4-10 15.3 15.3 0 0 1 4-10z">
+            <path d="M12 2a15.3 15.3 0 0 1 4 10
+              15.3 15.3 0 0 1-4 10
+              15.3 15.3 0 0 1-4-10
+              15.3 15.3 0 0 1 4-10z">
             </path>
           </svg>
         `,
@@ -142,10 +148,10 @@ module.exports = async (req, res) => {
         y: 140,
         svg: `
           <svg width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M4 4h16c1.1 0 2
-            .9 2 2v12c0 1.1-.9 2-2
-            2H4c-1.1 0-2-.9-2-2V6c0-1.1
-            .9-2 2-2z"></path>
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12
+              c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6
+              c0-1.1.9-2 2-2z">
+            </path>
             <polyline points="22,6 12,13 2,6"></polyline>
           </svg>
         `,
@@ -183,16 +189,17 @@ module.exports = async (req, res) => {
         <rect width="800" height="600" fill="url(#bgGradient)" />
 
         <!-- Avatar -->
+        <image x="20" y="20" width="160" height="160" href="data:${avatarMimeType};base64,${avatarBase64}" clip-path="url(#avatarClip)" />
 
         <!-- Name and Title -->
-        <text x="20" y="80" class="name">${escapeXML(data.name || data.login)}</text>
-        <text x="20" y="110" class="title">${escapeXML(data.bio || 'Software Developer, DevOps')}</text>
+        <text x="200" y="80" class="name">${escapeXML(data.name || data.login)}</text>
+        <text x="200" y="110" class="title">${escapeXML(data.bio || 'Software Developer, DevOps')}</text>
 
         <!-- Social Icons -->
         ${socialIcons}
 
         <!-- Stats -->
-        <text x="200" y="200" class="stats">Followers: ${data.followers} | Following : ${data.following} | Public Repos: ${data.public_repos}</text>
+        <text x="200" y="200" class="stats">Followers: ${data.followers} | Following: ${data.following} | Public Repos: ${data.public_repos}</text>
 
         <!-- Most Used Languages -->
         <text x="200" y="230" class="section-title">Most Used Languages:</text>
@@ -201,7 +208,6 @@ module.exports = async (req, res) => {
         <!-- Nessie Image and Text -->
         <image x="700" y="520" width="80" height="80" href="data:image/png;base64,${nessieBase64}" />
         <text x="490" y="500" font-size="14" fill="#ebdbb2" font-family="Segoe UI, Ubuntu, Sans-Serif" transform="rotate(-30 690,350)">Check out my projects underneath!</text>
-
 
         <!-- Styles -->
         <style>
