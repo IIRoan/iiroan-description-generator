@@ -1,5 +1,3 @@
-// api/github-readme.js
-
 require('dotenv').config();
 const axios = require('axios');
 const fs = require('fs');
@@ -189,13 +187,13 @@ module.exports = async (req, res) => {
 
         <!-- Name and Title -->
         <text x="200" y="80" class="name">${escapeXML(data.name || data.login)}</text>
-        <text x="200" y="110" class="title">${escapeXML(data.bio || 'Software Developer')}</text>
+        <text x="200" y="110" class="title">${escapeXML(data.bio || 'Software Developer, DevOps')}</text>
 
         <!-- Social Icons -->
         ${socialIcons}
 
         <!-- Stats -->
-        <text x="200" y="200" class="stats">Followers: ${data.followers} | Public Repos: ${data.public_repos}</text>
+        <text x="200" y="200" class="stats">Followers: ${data.followers} Following : ${data.following} | Public Repos: ${data.public_repos}</text>
 
         <!-- Most Used Languages -->
         <text x="200" y="230" class="section-title">Most Used Languages:</text>
@@ -205,7 +203,7 @@ module.exports = async (req, res) => {
         <image x="700" y="520" width="80" height="80" href="data:image/png;base64,${nessieBase64}" />
         <text x="490" y="500" font-size="14" fill="#ebdbb2" font-family="Segoe UI, Ubuntu, Sans-Serif" transform="rotate(-30 690,350)">Check out my projects underneath!</text>
 
-        
+
         <!-- Styles -->
         <style>
           .name {
