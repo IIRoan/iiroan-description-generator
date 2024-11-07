@@ -104,8 +104,8 @@ module.exports = async (req, res) => {
       const color = languageColors[lang.name] || '#ccc';
 
       languageBars += `
-        <rect x="20" y="${250 + yOffset}" width="${barWidth}" height="20" fill="${color}" rx="5" ry="5" />
-        <text x="20" y="${245 + yOffset}" font-size="14" fill="#ebdbb2" font-family="Segoe UI, Ubuntu, Sans-Serif">${lang.name} (${lang.percentage}%)</text>
+        <rect x="60" y="${250 + yOffset}" width="${barWidth}" height="20" fill="${color}" rx="5" ry="5" />
+        <text x="60" y="${245 + yOffset}" font-size="14" fill="#ebdbb2" font-family="Segoe UI, Ubuntu, Sans-Serif">${lang.name} (${lang.percentage}%)</text>
       `;
       yOffset += 45;
     });
@@ -120,7 +120,7 @@ module.exports = async (req, res) => {
     const icons = [
       {
         href: data.html_url,
-        x: 20,
+        x: 60,
         y: 140,
         svg: `
           <svg width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -137,7 +137,7 @@ module.exports = async (req, res) => {
       },
       {
         href: 'https://roan.dev',
-        x: 60,
+        x: 100,
         y: 140,
         svg: `
           <svg width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -153,7 +153,7 @@ module.exports = async (req, res) => {
       },
       {
         href: 'mailto:git@lunary.roan.zip',
-        x: 100,
+        x: 140,
         y: 140,
         svg: `
           <svg width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -227,6 +227,18 @@ module.exports = async (req, res) => {
       repoYOffset += 60;
     });
 
+    // Arrow Down Icon from Feather Icons
+    const arrowIconSize = 24;
+    const arrowX = (900 - arrowIconSize) / 2; // Centered horizontally
+    const arrowY = 550; 
+
+    const arrowDownSvg = `
+      <svg x="${arrowX}" y="${arrowY}" width="${arrowIconSize}" height="${arrowIconSize}" viewBox="0 0 24 24" fill="none" stroke="#ebdbb2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <polyline points="19 12 12 19 5 12"></polyline>
+      </svg>
+    `;
+
     // Generate SVG content
     const svg = `
       <svg width="900" height="600" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -236,9 +248,6 @@ module.exports = async (req, res) => {
             <stop offset="0%" style="stop-color:#1d2021;stop-opacity:1" />
             <stop offset="100%" style="stop-color:#32302f;stop-opacity:1" />
           </linearGradient>
-          
-          <!-- Avatar Mask (Not used anymore) -->
-          <!-- Removed the avatar clip path -->
         </defs>
 
         <!-- Background -->
@@ -248,27 +257,30 @@ module.exports = async (req, res) => {
         <image x="0" y="0" width="900" height="600" href="data:${avatarMimeType};base64,${avatarBase64}" opacity="0.05" preserveAspectRatio="xMidYMid slice"/>
 
         <!-- Name and Title -->
-        <text x="20" y="80" class="name">${escapeXML(data.name || data.login)}</text>
-        <text x="20" y="110" class="title">${escapeXML(data.bio || 'Software Developer, DevOps')}</text>
+        <text x="60" y="80" class="name">${escapeXML(data.name || data.login)}</text>
+        <text x="60" y="110" class="title">${escapeXML(data.bio || 'Software Developer, DevOps')}</text>
 
         <!-- Social Icons -->
         ${socialIcons}
 
         <!-- Stats -->
-        <text x="20" y="200" class="stats">
+        <text x="60" y="200" class="stats">
           Followers: ${data.followers} | Following: ${data.following} | Repos: ${data.public_repos} | Gists: ${gistsCount} | Contributions (Last Year): ${contributionsLastYear}
         </text>
 
         <!-- Most Used Languages -->
-        <text x="20" y="230" class="section-title">Most Used Languages:</text>
+        <text x="60" y="230" class="section-title">Most Used Languages:</text>
         ${languageBars}
 
         <!-- Top Repositories on the Right -->
         <text x="400" y="230" class="section-title">Top Repositories:</text>
         ${reposInfo}
 
-        <!-- Nessie Image and Text -->
+        <!-- Nessie Image -->
         <image x="850" y="550" width="60" height="60" href="data:image/png;base64,${nessieBase64}" />
+
+        <!-- Downward Arrow Icon -->
+        ${arrowDownSvg}
 
         <!-- Styles -->
         <style>
