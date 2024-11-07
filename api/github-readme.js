@@ -1,4 +1,5 @@
-// Full code with centering adjustments
+// api/github-readme.js
+
 require('dotenv').config();
 const axios = require('axios');
 const fs = require('fs');
@@ -30,12 +31,18 @@ module.exports = async (req, res) => {
       Authorization: `token ${GITHUB_TOKEN}`,
     };
 
+    const username = 'IIRoan';
+
     // Fetch data from GitHub API
-    const userData = await axios.get('https://api.github.com/users/IIRoan', { headers });
-    const reposData = await axios.get('https://api.github.com/users/IIRoan/repos?per_page=100', { headers });
+    const [userData, reposData, eventsData] = await Promise.all([
+      axios.get(`https://api.github.com/users/${username}`, { headers }),
+      axios.get(`https://api.github.com/users/${username}/repos?per_page=100`, { headers }),
+      axios.get(`https://api.github.com/users/${username}/events`, { headers }),
+    ]);
 
     const data = userData.data;
     const repos = reposData.data;
+    const events = eventsData.data;
 
     // Fetch the avatar image and convert it to base64
     const avatarResponse = await axios.get(data.avatar_url, {
@@ -85,9 +92,11 @@ module.exports = async (req, res) => {
       'C#': '#178600',
       HTML: '#e34c26',
       CSS: '#563d7c',
+      Shell: '#89e051',
+      // Add more if needed
     };
 
-    // Create language bars and center them
+    // Create language bars
     let languageBars = '';
     let yOffset = 15;
     languages.forEach((lang, index) => {
@@ -95,8 +104,8 @@ module.exports = async (req, res) => {
       const color = languageColors[lang.name] || '#ccc';
 
       languageBars += `
-        <rect x="350" y="${250 + yOffset}" width="${barWidth}" height="20" fill="${color}" rx="5" ry="5" />
-        <text x="350" y="${245 + yOffset}" font-size="14" fill="#ebdbb2" font-family="Segoe UI, Ubuntu, Sans-Serif">${lang.name} (${lang.percentage}%)</text>
+        <rect x="20" y="${250 + yOffset}" width="${barWidth}" height="20" fill="${color}" rx="5" ry="5" />
+        <text x="20" y="${245 + yOffset}" font-size="14" fill="#ebdbb2" font-family="Segoe UI, Ubuntu, Sans-Serif">${lang.name} (${lang.percentage}%)</text>
       `;
       yOffset += 45;
     });
@@ -111,7 +120,7 @@ module.exports = async (req, res) => {
     const icons = [
       {
         href: data.html_url,
-        x: 360,
+        x: 20,
         y: 140,
         svg: `
           <svg width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -128,7 +137,7 @@ module.exports = async (req, res) => {
       },
       {
         href: 'https://roan.dev',
-        x: 400,
+        x: 60,
         y: 140,
         svg: `
           <svg width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -144,7 +153,7 @@ module.exports = async (req, res) => {
       },
       {
         href: 'mailto:git@lunary.roan.zip',
-        x: 440,
+        x: 100,
         y: 140,
         svg: `
           <svg width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -158,63 +167,109 @@ module.exports = async (req, res) => {
       },
     ];
 
-    // Create social icons with larger clickable areas and center them
+    // Create social icons with larger clickable areas
     let socialIcons = '';
     icons.forEach((icon) => {
       socialIcons += `
         <a xlink:href="${icon.href}" target="_blank">
-          <rect x="${icon.x - iconPadding}" y="${icon.y - iconPadding}" width="${iconSize + iconPadding * 2}" height="${iconSize + iconPadding * 2}" fill="transparent" />
+          <rect x="${icon.x - iconPadding}" y="${icon.y - iconPadding}" width="${
+        iconSize + iconPadding * 2
+      }" height="${iconSize + iconPadding * 2}" fill="transparent" />
           ${icon.svg.replace('<svg ', `<svg x="${icon.x}" y="${icon.y}" `)}
         </a>
       `;
     });
 
+    // Fetch user's gists count
+    const gistsCount = data.public_gists;
+
+    // Calculate contributions in the last year
+    const contributionsLastYear = events.filter((event) => {
+      const eventDate = new Date(event.created_at);
+      const oneYearAgo = new Date();
+      oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+      return eventDate >= oneYearAgo;
+    }).length;
+
+    // Get top 4 repositories by stargazers_count
+    const topRepos = repos
+      .filter((repo) => !repo.fork) // Exclude forked repositories
+      .sort((a, b) => b.stargazers_count - a.stargazers_count)
+      .slice(0, 4);
+
+    // Function to truncate text with ellipsis
+    function truncateText(text, maxLength) {
+      if (text.length > maxLength) {
+        return text.substring(0, maxLength - 3) + '...';
+      }
+      return text;
+    }
+
+    let reposInfo = '';
+    let repoYOffset = 0;
+    topRepos.forEach((repo) => {
+      // Truncate the description to 60 characters
+      const truncatedDescription = truncateText(repo.description || '', 60);
+
+      reposInfo += `
+        <a xlink:href="${repo.html_url}" target="_blank">
+          <text x="500" y="${250 + repoYOffset}" font-size="16" fill="#b8bb26" font-family="Segoe UI, Ubuntu, Sans-Serif">${escapeXML(
+        repo.name
+      )}</text>
+        </a>
+        <text x="500" y="${270 + repoYOffset}" font-size="14" fill="#ebdbb2" font-family="Segoe UI, Ubuntu, Sans-Serif">${escapeXML(
+        truncatedDescription
+      )}</text>
+        <text x="500" y="${290 + repoYOffset}" font-size="12" fill="#d3869b" font-family="Segoe UI, Ubuntu, Sans-Serif">★ ${
+        repo.stargazers_count
+      } | Forks: ${repo.forks_count}</text>
+      `;
+      repoYOffset += 60;
+    });
+
     // Generate SVG content
     const svg = `
-      <svg width="800" height="600" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+      <svg width="1000" height="600" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
         <defs>
           <!-- Background Gradient -->
           <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" style="stop-color:#1d2021;stop-opacity:1" />
             <stop offset="100%" style="stop-color:#32302f;stop-opacity:1" />
           </linearGradient>
-
-          <!-- Shadow Filter -->
-          <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-            <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#000" flood-opacity="0.5"/>
-          </filter>
+          
+          <!-- Avatar Mask (Not used anymore) -->
+          <!-- Removed the avatar clip path -->
         </defs>
 
         <!-- Background -->
-        <rect width="800" height="600" fill="url(#bgGradient)" />
+        <rect width="1000" height="600" fill="url(#bgGradient)" />
 
-        <!-- Background Avatar Image with Shadow and Transparency -->
-        <g filter="url(#shadow)">
-          <image x="0" y="0" width="800" height="600" href="data:${avatarMimeType};base64,${avatarBase64}" opacity="0.1" preserveAspectRatio="xMidYMid slice"/>
-        </g>
+        <!-- Background Avatar Image with Transparency -->
+        <image x="0" y="0" width="1000" height="600" href="data:${avatarMimeType};base64,${avatarBase64}" opacity="0.05" preserveAspectRatio="xMidYMid slice"/>
 
         <!-- Name and Title -->
-        <text x="50%" y="80" class="name" text-anchor="middle">${escapeXML(data.name || data.login)}</text>
-        <text x="50%" y="110" class="title" text-anchor="middle">${escapeXML(data.bio || 'Software Developer, DevOps')}</text>
+        <text x="20" y="80" class="name">${escapeXML(data.name || data.login)}</text>
+        <text x="20" y="110" class="title">${escapeXML(data.bio || 'Software Developer, DevOps')}</text>
 
-        <!-- Centered Social Icons -->
-        <g>
-          ${socialIcons}
-        </g>
+        <!-- Social Icons -->
+        ${socialIcons}
 
         <!-- Stats -->
-        <text x="50%" y="200" class="stats" text-anchor="middle">Followers: ${data.followers} | Following: ${data.following} | Public Repos: ${data.public_repos}</text>
+        <text x="20" y="200" class="stats">
+          Followers: ${data.followers} | Following: ${data.following} | Repos: ${data.public_repos} | Gists: ${gistsCount} | Contributions (Last Year): ${contributionsLastYear}
+        </text>
 
         <!-- Most Used Languages -->
-        <text x="50%" y="230" class="section-title" text-anchor="middle">Most Used Languages:</text>
-        <!-- Centered Language Bars -->
-        <g transform="translate(0, 0)">
-          ${languageBars}
-        </g>
+        <text x="20" y="230" class="section-title">Most Used Languages:</text>
+        ${languageBars}
+
+        <!-- Top Repositories on the Right -->
+        <text x="500" y="230" class="section-title">Top Repositories:</text>
+        ${reposInfo}
 
         <!-- Nessie Image and Text -->
-        <image x="700" y="520" width="80" height="80" href="data:image/png;base64,${nessieBase64}" />
-        <text x="490" y="500" font-size="14" fill="#ebdbb2" font-family="Segoe UI, Ubuntu, Sans-Serif" transform="rotate(-30 690,350)">Check out my projects underneath!</text>
+        <image x="920" y="520" width="60" height="60" href="data:image/png;base64,${nessieBase64}" />
+        <text x="750" y="500" font-size="14" fill="#ebdbb2" font-family="Segoe UI, Ubuntu, Sans-Serif" transform="rotate(-30 850,450)">Check out my projects underneath!</text>
 
         <!-- Styles -->
         <style>
@@ -241,7 +296,7 @@ module.exports = async (req, res) => {
             text-decoration: none;
           }
           svg {
-            overflow: hidden;
+            overflow: visible;
           }
         </style>
       </svg>
