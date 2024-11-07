@@ -1,5 +1,3 @@
-// api/github-readme.js
-
 require('dotenv').config();
 const axios = require('axios');
 const fs = require('fs');
@@ -93,7 +91,6 @@ module.exports = async (req, res) => {
       HTML: '#e34c26',
       CSS: '#563d7c',
       Shell: '#89e051',
-      // Add more if needed
     };
 
     // Create language bars
