@@ -213,14 +213,14 @@ module.exports = async (req, res) => {
 
       reposInfo += `
         <a xlink:href="${repo.html_url}" target="_blank">
-          <text x="500" y="${250 + repoYOffset}" font-size="16" fill="#b8bb26" font-family="Segoe UI, Ubuntu, Sans-Serif">${escapeXML(
+          <text x="400" y="${250 + repoYOffset}" font-size="16" fill="#b8bb26" font-family="Segoe UI, Ubuntu, Sans-Serif">${escapeXML(
         repo.name
       )}</text>
         </a>
-        <text x="500" y="${270 + repoYOffset}" font-size="14" fill="#ebdbb2" font-family="Segoe UI, Ubuntu, Sans-Serif">${escapeXML(
+        <text x="400" y="${270 + repoYOffset}" font-size="14" fill="#ebdbb2" font-family="Segoe UI, Ubuntu, Sans-Serif">${escapeXML(
         truncatedDescription
       )}</text>
-        <text x="500" y="${290 + repoYOffset}" font-size="12" fill="#d3869b" font-family="Segoe UI, Ubuntu, Sans-Serif">★ ${
+        <text x="400" y="${290 + repoYOffset}" font-size="12" fill="#d3869b" font-family="Segoe UI, Ubuntu, Sans-Serif">★ ${
         repo.stargazers_count
       } | Forks: ${repo.forks_count}</text>
       `;
@@ -229,7 +229,7 @@ module.exports = async (req, res) => {
 
     // Generate SVG content
     const svg = `
-      <svg width="1000" height="600" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+      <svg width="900" height="600" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
         <defs>
           <!-- Background Gradient -->
           <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -242,10 +242,10 @@ module.exports = async (req, res) => {
         </defs>
 
         <!-- Background -->
-        <rect width="1000" height="600" fill="url(#bgGradient)" />
+        <rect width="900" height="600" fill="url(#bgGradient)" />
 
         <!-- Background Avatar Image with Transparency -->
-        <image x="0" y="0" width="1000" height="600" href="data:${avatarMimeType};base64,${avatarBase64}" opacity="0.05" preserveAspectRatio="xMidYMid slice"/>
+        <image x="0" y="0" width="900" height="600" href="data:${avatarMimeType};base64,${avatarBase64}" opacity="0.05" preserveAspectRatio="xMidYMid slice"/>
 
         <!-- Name and Title -->
         <text x="20" y="80" class="name">${escapeXML(data.name || data.login)}</text>
@@ -264,12 +264,12 @@ module.exports = async (req, res) => {
         ${languageBars}
 
         <!-- Top Repositories on the Right -->
-        <text x="500" y="230" class="section-title">Top Repositories:</text>
+        <text x="400" y="230" class="section-title">Top Repositories:</text>
         ${reposInfo}
 
         <!-- Nessie Image and Text -->
-        <image x="920" y="520" width="60" height="60" href="data:image/png;base64,${nessieBase64}" />
-        <text x="750" y="500" font-size="14" fill="#ebdbb2" font-family="Segoe UI, Ubuntu, Sans-Serif" transform="rotate(-30 850,450)">Check out my projects underneath!</text>
+        <image x="850" y="550" width="60" height="60" href="data:image/png;base64,${nessieBase64}" />
+        <text x="650" y="500" font-size="14" fill="#ebdbb2" font-family="Segoe UI, Ubuntu, Sans-Serif" transform="rotate(-30 850,450)">Check out my projects underneath!</text>
 
         <!-- Styles -->
         <style>
