@@ -183,17 +183,16 @@ module.exports = async (req, res) => {
         <rect width="800" height="600" fill="url(#bgGradient)" />
 
         <!-- Avatar -->
-        <image x="20" y="20" width="160" height="160" href="${data.avatar_url}" clip-path="url(#avatarClip)" />
 
         <!-- Name and Title -->
-        <text x="200" y="80" class="name">${escapeXML(data.name || data.login)}</text>
-        <text x="200" y="110" class="title">${escapeXML(data.bio || 'Software Developer, DevOps')}</text>
+        <text x="20" y="80" class="name">${escapeXML(data.name || data.login)}</text>
+        <text x="20" y="110" class="title">${escapeXML(data.bio || 'Software Developer, DevOps')}</text>
 
         <!-- Social Icons -->
         ${socialIcons}
 
         <!-- Stats -->
-        <text x="200" y="200" class="stats">Followers: ${data.followers} Following : ${data.following} | Public Repos: ${data.public_repos}</text>
+        <text x="200" y="200" class="stats">Followers: ${data.followers} | Following : ${data.following} | Public Repos: ${data.public_repos}</text>
 
         <!-- Most Used Languages -->
         <text x="200" y="230" class="section-title">Most Used Languages:</text>
