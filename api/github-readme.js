@@ -1,3 +1,4 @@
+// Full code with centering adjustments
 require('dotenv').config();
 const axios = require('axios');
 const fs = require('fs');
@@ -84,10 +85,9 @@ module.exports = async (req, res) => {
       'C#': '#178600',
       HTML: '#e34c26',
       CSS: '#563d7c',
-      // Add more if needed
     };
 
-    // Create language bars
+    // Create language bars and center them
     let languageBars = '';
     let yOffset = 15;
     languages.forEach((lang, index) => {
@@ -95,8 +95,8 @@ module.exports = async (req, res) => {
       const color = languageColors[lang.name] || '#ccc';
 
       languageBars += `
-        <rect x="200" y="${250 + yOffset}" width="${barWidth}" height="20" fill="${color}" rx="5" ry="5" />
-        <text x="200" y="${245 + yOffset}" font-size="14" fill="#ebdbb2" font-family="Segoe UI, Ubuntu, Sans-Serif">${lang.name} (${lang.percentage}%)</text>
+        <rect x="350" y="${250 + yOffset}" width="${barWidth}" height="20" fill="${color}" rx="5" ry="5" />
+        <text x="350" y="${245 + yOffset}" font-size="14" fill="#ebdbb2" font-family="Segoe UI, Ubuntu, Sans-Serif">${lang.name} (${lang.percentage}%)</text>
       `;
       yOffset += 45;
     });
@@ -111,7 +111,7 @@ module.exports = async (req, res) => {
     const icons = [
       {
         href: data.html_url,
-        x: 200,
+        x: 360,
         y: 140,
         svg: `
           <svg width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -128,7 +128,7 @@ module.exports = async (req, res) => {
       },
       {
         href: 'https://roan.dev',
-        x: 240,
+        x: 400,
         y: 140,
         svg: `
           <svg width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -144,7 +144,7 @@ module.exports = async (req, res) => {
       },
       {
         href: 'mailto:git@lunary.roan.zip',
-        x: 280,
+        x: 440,
         y: 140,
         svg: `
           <svg width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -158,7 +158,7 @@ module.exports = async (req, res) => {
       },
     ];
 
-    // Create social icons with larger clickable areas
+    // Create social icons with larger clickable areas and center them
     let socialIcons = '';
     icons.forEach((icon) => {
       socialIcons += `
@@ -178,32 +178,39 @@ module.exports = async (req, res) => {
             <stop offset="0%" style="stop-color:#1d2021;stop-opacity:1" />
             <stop offset="100%" style="stop-color:#32302f;stop-opacity:1" />
           </linearGradient>
-          
-          <!-- Avatar Mask -->
-          <clipPath id="avatarClip">
-            <circle cx="100" cy="100" r="80" />
-          </clipPath>
+
+          <!-- Shadow Filter -->
+          <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#000" flood-opacity="0.5"/>
+          </filter>
         </defs>
 
         <!-- Background -->
         <rect width="800" height="600" fill="url(#bgGradient)" />
 
-        <!-- Avatar -->
-        <image x="20" y="20" width="160" height="160" href="data:${avatarMimeType};base64,${avatarBase64}" clip-path="url(#avatarClip)" />
+        <!-- Background Avatar Image with Shadow and Transparency -->
+        <g filter="url(#shadow)">
+          <image x="0" y="0" width="800" height="600" href="data:${avatarMimeType};base64,${avatarBase64}" opacity="0.1" preserveAspectRatio="xMidYMid slice"/>
+        </g>
 
         <!-- Name and Title -->
-        <text x="200" y="80" class="name">${escapeXML(data.name || data.login)}</text>
-        <text x="200" y="110" class="title">${escapeXML(data.bio || 'Software Developer, DevOps')}</text>
+        <text x="50%" y="80" class="name" text-anchor="middle">${escapeXML(data.name || data.login)}</text>
+        <text x="50%" y="110" class="title" text-anchor="middle">${escapeXML(data.bio || 'Software Developer, DevOps')}</text>
 
-        <!-- Social Icons -->
-        ${socialIcons}
+        <!-- Centered Social Icons -->
+        <g>
+          ${socialIcons}
+        </g>
 
         <!-- Stats -->
-        <text x="200" y="200" class="stats">Followers: ${data.followers} | Following: ${data.following} | Public Repos: ${data.public_repos}</text>
+        <text x="50%" y="200" class="stats" text-anchor="middle">Followers: ${data.followers} | Following: ${data.following} | Public Repos: ${data.public_repos}</text>
 
         <!-- Most Used Languages -->
-        <text x="200" y="230" class="section-title">Most Used Languages:</text>
-        ${languageBars}
+        <text x="50%" y="230" class="section-title" text-anchor="middle">Most Used Languages:</text>
+        <!-- Centered Language Bars -->
+        <g transform="translate(0, 0)">
+          ${languageBars}
+        </g>
 
         <!-- Nessie Image and Text -->
         <image x="700" y="520" width="80" height="80" href="data:image/png;base64,${nessieBase64}" />
@@ -234,7 +241,7 @@ module.exports = async (req, res) => {
             text-decoration: none;
           }
           svg {
-            overflow: visible;
+            overflow: hidden;
           }
         </style>
       </svg>
