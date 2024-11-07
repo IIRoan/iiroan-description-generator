@@ -269,7 +269,6 @@ module.exports = async (req, res) => {
 
         <!-- Nessie Image and Text -->
         <image x="850" y="550" width="60" height="60" href="data:image/png;base64,${nessieBase64}" />
-        <text x="650" y="500" font-size="14" fill="#ebdbb2" font-family="Segoe UI, Ubuntu, Sans-Serif" transform="rotate(-30 850,450)">Check out my projects underneath!</text>
 
         <!-- Styles -->
         <style>
