@@ -1,32 +1,59 @@
 require('dotenv').config();
 const express = require('express');
 const githubReadme = require('./api/github-readme');
+const winston = require('winston');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 let requestCount = 0; // Counter for total requests received this deployment
 
-// Structured logging function to normalize logs
-const log = (level, message, details = {}) => {
-  console.log(JSON.stringify({ level, msg: message, ...details }));
-};
+// Set up winston logger
+const logger = winston.createLogger({
+  level: 'info',
+  format: winston.format.json(),
+  transports: [
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.printf(({ timestamp, level, message, ...meta }) => {
+          return JSON.stringify({ timestamp, level, message, ...meta });
+        })
+      ),
+    }),
+  ],
+});
 
-// Simple route for the GitHub README image
+// Middleware to log HTTP requests with client IP and User-Agent
+app.use((req, res, next) => {
+  logger.info('HTTP Request', {
+    method: req.method,
+    url: req.originalUrl,
+    clientIp: req.ip,
+    userAgent: req.headers['user-agent'],
+  });
+  next();
+});
+
+// Route for the GitHub README image
 app.get('/api/github-readme', (req, res) => {
   requestCount += 1;
-  const clientIp = req.ip; // Get client's IP address
-  log('info', 'Received request for /api/github-readme', { path: req.path, method: req.method, clientIp, requestCount });
-
   try {
     githubReadme(req, res);
-    log('info', 'Successfully processed /api/github-readme request', { path: req.path, clientIp, requestCount });
+    logger.info('Successfully processed /api/github-readme request', {
+      path: req.path,
+      requestCount,
+    });
   } catch (error) {
-    log('error', 'Error handling /api/github-readme', { error: error.message, stack: error.stack, clientIp, requestCount });
+    logger.error('Error handling /api/github-readme', {
+      error: error.message,
+      stack: error.stack,
+      requestCount,
+    });
     res.status(500).send('An error occurred while processing the request.');
   }
 });
 
 // Start server
 app.listen(PORT, () => {
-  log('info', `Server is running on http://localhost:${PORT}`, { port: PORT });
+  logger.info(`Server is running on http://localhost:${PORT}`, { port: PORT });
 });
