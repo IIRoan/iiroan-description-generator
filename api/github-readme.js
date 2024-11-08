@@ -366,7 +366,7 @@ module.exports = async (req, res) => {
 
     // Set content type to SVG
     res.setHeader('Content-Type', 'image/svg+xml');
-    res.setHeader('Cache-Control', 'no-cache'); // Prevent caching
+    res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
     res.send(svg);
   } catch (error) {
     console.error(error);
