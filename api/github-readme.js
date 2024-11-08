@@ -29,7 +29,7 @@ module.exports = async (req, res) => {
       Authorization: `token ${GITHUB_TOKEN}`,
     };
 
-    const username = 'IIRoan';
+    const username = process.env.GITHUB_USERNAME;
 
     // Fetch data from GitHub API
     const [userData, reposData, eventsData] = await Promise.all([
@@ -82,7 +82,7 @@ module.exports = async (req, res) => {
       .sort((a, b) => b.percentage - a.percentage)
       .slice(0, 5); // Top 5 languages
 
-    // Define colors for languages
+    // Define colors for languages (original code)
     const languageColors = {
       JavaScript: '#f1e05a',
       TypeScript: '#2b7489',
@@ -93,32 +93,54 @@ module.exports = async (req, res) => {
       Shell: '#89e051',
     };
 
-    // Create language bars
+    // Read colors for text elements and language text from .env with default values
+    const colors = {
+      nameFillColor: process.env.NAME_FILL_COLOR || '#4B8B9B',
+      titleFillColor: process.env.TITLE_FILL_COLOR || '#AB83CD',
+      statsFillColor: process.env.STATS_FILL_COLOR || '#B0C4DE',
+      sectionTitleFillColor: process.env.SECTION_TITLE_FILL_COLOR || '#6A5ACD',
+      languageTextColor: process.env.LANGUAGE_TEXT_COLOR || '#B0C4DE' // New color for language text
+    };
+
+    // Create language bars with configurable text color
     let languageBars = '';
     let yOffset = 15;
-    languages.forEach((lang, index) => {
+    languages.forEach((lang) => {
       const barWidth = lang.percentage * 2;
       const color = languageColors[lang.name] || '#ccc';
 
       languageBars += `
         <rect x="60" y="${250 + yOffset}" width="${barWidth}" height="20" fill="${color}" rx="5" ry="5" />
-        <text x="60" y="${245 + yOffset}" font-size="14" fill="#ebdbb2" font-family="Segoe UI, Ubuntu, Sans-Serif">${lang.name} (${lang.percentage}%)</text>
+        <text x="60" y="${245 + yOffset}" font-size="14" fill="${colors.languageTextColor}" font-family="Segoe UI, Ubuntu, Sans-Serif">${lang.name} (${lang.percentage}%)</text>
       `;
       yOffset += 45;
     });
 
-    // Read nessie.png as a Base64 encoded string
-    const nessiePath = path.join(__dirname, 'nessie.png');
-    const nessieBase64 = fs.readFileSync(nessiePath).toString('base64');
+    // Read Nessie image only if SHOW_NESSIE_IMAGE is true
+    let nessieImage = '';
+    const showNessie = process.env.SHOW_NESSIE_IMAGE !== 'false'; // Default to true
+    if (showNessie) {
+      const nessiePath = path.join(__dirname, 'nessie.png');
+      const nessieBase64 = fs.readFileSync(nessiePath).toString('base64');
+      nessieImage = `
+        <!-- Nessie Image -->
+        <image x="850" y="550" width="60" height="60" href="data:image/png;base64,${nessieBase64}" />
+      `;
+    }
+
+    // Read social media links from .env
+    const githubLink = process.env.GITHUB_LINK || data.html_url;
+    const websiteLink = process.env.WEBSITE_LINK || '';
+    const emailLink = process.env.EMAIL_LINK || '';
 
     // Standardized SVG Icons from Feather Icons (https://feathericons.com/)
     const iconSize = 24;
     const iconPadding = 10;
-    const icons = [
+
+    // Prepare the icons data
+    const iconsData = [
       {
-        href: data.html_url,
-        x: 60,
-        y: 140,
+        href: githubLink,
         svg: `
           <svg width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 19c-5 1.5-5-2.5-7-3
@@ -133,9 +155,7 @@ module.exports = async (req, res) => {
         `,
       },
       {
-        href: 'https://roan.dev',
-        x: 100,
-        y: 140,
+        href: websiteLink,
         svg: `
           <svg width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"></circle>
@@ -149,9 +169,7 @@ module.exports = async (req, res) => {
         `,
       },
       {
-        href: 'mailto:git@lunary.roan.zip',
-        x: 140,
-        y: 140,
+        href: emailLink,
         svg: `
           <svg width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M4 4h16c1.1 0 2 .9 2 2v12
@@ -164,14 +182,26 @@ module.exports = async (req, res) => {
       },
     ];
 
+    // Filter out icons with empty links
+    const icons = iconsData.filter((icon) => icon.href && icon.href.trim() !== '');
+
+    // Adjust x positions based on the number of icons
+    const totalIcons = icons.length;
+    const iconSpacing = 40; // Adjust spacing as needed
+    const startingX = 60; // Starting x position
+
+    icons.forEach((icon, index) => {
+      icon.x = startingX + index * iconSpacing;
+      icon.y = 140;
+    });
+
     // Create social icons with larger clickable areas
     let socialIcons = '';
     icons.forEach((icon) => {
       socialIcons += `
         <a xlink:href="${icon.href}" target="_blank">
-          <rect x="${icon.x - iconPadding}" y="${icon.y - iconPadding}" width="${
-        iconSize + iconPadding * 2
-      }" height="${iconSize + iconPadding * 2}" fill="transparent" />
+          <rect x="${icon.x - iconPadding}" y="${icon.y - iconPadding}" width="${iconSize + iconPadding * 2
+        }" height="${iconSize + iconPadding * 2}" fill="transparent" />
           ${icon.svg.replace('<svg ', `<svg x="${icon.x}" y="${icon.y}" `)}
         </a>
       `;
@@ -202,6 +232,13 @@ module.exports = async (req, res) => {
       return text;
     }
 
+    // Read colors for repo section from .env or use defaults
+    const repoColors = {
+      repoNameColor: process.env.REPO_NAME_COLOR || '#b8bb26',
+      repoDescColor: process.env.REPO_DESC_COLOR || '#ebdbb2',
+      repoStatsColor: process.env.REPO_STATS_COLOR || '#d3869b',
+    };
+
     let reposInfo = '';
     let repoYOffset = 0;
     topRepos.forEach((repo) => {
@@ -210,16 +247,15 @@ module.exports = async (req, res) => {
 
       reposInfo += `
         <a xlink:href="${repo.html_url}" target="_blank">
-          <text x="400" y="${250 + repoYOffset}" font-size="16" fill="#b8bb26" font-family="Segoe UI, Ubuntu, Sans-Serif">${escapeXML(
+          <text x="400" y="${250 + repoYOffset}" font-size="16" fill="${repoColors.repoNameColor}" font-family="Segoe UI, Ubuntu, Sans-Serif">${escapeXML(
         repo.name
       )}</text>
         </a>
-        <text x="400" y="${270 + repoYOffset}" font-size="14" fill="#ebdbb2" font-family="Segoe UI, Ubuntu, Sans-Serif">${escapeXML(
+        <text x="400" y="${270 + repoYOffset}" font-size="14" fill="${repoColors.repoDescColor}" font-family="Segoe UI, Ubuntu, Sans-Serif">${escapeXML(
         truncatedDescription
       )}</text>
-        <text x="400" y="${290 + repoYOffset}" font-size="12" fill="#d3869b" font-family="Segoe UI, Ubuntu, Sans-Serif">★ ${
-        repo.stargazers_count
-      } | Forks: ${repo.forks_count}</text>
+        <text x="400" y="${290 + repoYOffset}" font-size="12" fill="${repoColors.repoStatsColor}" font-family="Segoe UI, Ubuntu, Sans-Serif">★ ${repo.stargazers_count
+        } | Forks: ${repo.forks_count}</text>
       `;
       repoYOffset += 60;
     });
@@ -227,7 +263,7 @@ module.exports = async (req, res) => {
     // Arrow Down Icon from Feather Icons
     const arrowIconSize = 24;
     const arrowX = (900 - arrowIconSize) / 2; // Centered horizontally
-    const arrowY = 550; 
+    const arrowY = 550;
 
     const arrowDownSvg = `
       <svg x="${arrowX}" y="${arrowY}" width="${arrowIconSize}" height="${arrowIconSize}" viewBox="0 0 24 24" fill="none" stroke="#ebdbb2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -235,6 +271,15 @@ module.exports = async (req, res) => {
         <polyline points="19 12 12 19 5 12"></polyline>
       </svg>
     `;
+
+    // Read bio preferences from .env
+    const useGitHubBio = process.env.USE_GITHUB_BIO === 'true';
+    const bio = useGitHubBio ? data.bio || '' : process.env.BIO || '';
+
+    // Read custom background image settings from .env
+    const showAvatarBackground = process.env.SHOW_AVATAR_BACKGROUND !== 'false'; // Default to true
+    const avatarBackgroundOpacity = parseFloat(process.env.AVATAR_BACKGROUND_OPACITY) || 0.05;
+    const backgroundImageUrl = process.env.BACKGROUND_IMAGE_URL || '';
 
     // Generate SVG content
     const svg = `
@@ -250,12 +295,21 @@ module.exports = async (req, res) => {
         <!-- Background -->
         <rect width="900" height="600" fill="url(#bgGradient)" />
 
+        <!-- Custom Background Image -->
+        ${backgroundImageUrl
+        ? `<image x="0" y="0" width="900" height="600" href="${backgroundImageUrl}" opacity="0.3" preserveAspectRatio="xMidYMid slice"/>`
+        : ''
+      }
+
         <!-- Background Avatar Image with Transparency -->
-        <image x="0" y="0" width="900" height="600" href="data:${avatarMimeType};base64,${avatarBase64}" opacity="0.05" preserveAspectRatio="xMidYMid slice"/>
+        ${showAvatarBackground
+        ? `<image x="0" y="0" width="900" height="600" href="data:${avatarMimeType};base64,${avatarBase64}" opacity="${avatarBackgroundOpacity}" preserveAspectRatio="xMidYMid slice"/>`
+        : ''
+      }
 
         <!-- Name and Title -->
         <text x="60" y="80" class="name">${escapeXML(data.name || data.login)}</text>
-        <text x="60" y="110" class="title">${escapeXML(data.bio || 'Software Developer, DevOps')}</text>
+        <text x="60" y="110" class="title">${escapeXML(bio)}</text>
 
         <!-- Social Icons -->
         ${socialIcons}
@@ -274,7 +328,7 @@ module.exports = async (req, res) => {
         ${reposInfo}
 
         <!-- Nessie Image -->
-        <image x="850" y="550" width="60" height="60" href="data:image/png;base64,${nessieBase64}" />
+        ${nessieImage}
 
         <!-- Downward Arrow Icon -->
         ${arrowDownSvg}
@@ -283,19 +337,19 @@ module.exports = async (req, res) => {
         <style>
           .name {
             font: bold 30px 'Segoe UI', Ubuntu, Sans-Serif;
-            fill: #fabd2f;
+            fill: ${colors.nameFillColor};
           }
           .title {
             font: 20px 'Segoe UI', Ubuntu, Sans-Serif;
-            fill: #83a598;
+            fill: ${colors.titleFillColor};
           }
           .stats {
             font: 16px 'Segoe UI', Ubuntu, Sans-Serif;
-            fill: #ebdbb2;
+            fill: ${colors.statsFillColor};
           }
           .section-title {
             font: bold 18px 'Segoe UI', Ubuntu, Sans-Serif;
-            fill: #fe8019;
+            fill: ${colors.sectionTitleFillColor};
           }
           text {
             font-family: 'Segoe UI', Ubuntu, Sans-Serif;
