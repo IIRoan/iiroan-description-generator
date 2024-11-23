@@ -1,0 +1,26 @@
+name = "github-readme-worker"
+main = "worker.js"
+compatibility_date = "2024-11-23"
+
+[vars]
+GITHUB_USERNAME = "YourUserName"
+USE_GITHUB_BIO = "true"
+BIO = "Your custom bio goes here"
+NAME_FILL_COLOR = "#fabd2f"
+TITLE_FILL_COLOR = "#83a598"
+STATS_FILL_COLOR = "#ebdbb2"
+SECTION_TITLE_FILL_COLOR = "#d3869b"
+LANGUAGE_TEXT_COLOR = "#ebdbb2"
+REPO_NAME_COLOR = "#83a598"
+REPO_DESC_COLOR = "#d5c4a1"
+REPO_STATS_COLOR = "#8ec07c"
+GITHUB_LINK = ""
+WEBSITE_LINK = "https://User.dev"
+EMAIL_LINK = "mailto:Hello@world.com"
+SHOW_NESSIE_IMAGE = "true"
+SHOW_AVATAR_BACKGROUND = "true"
+AVATAR_BACKGROUND_OPACITY = "0.05"
+BACKGROUND_IMAGE_URL = ""
+
+# Include the base64-encoded image data if you want to display it
+NESSIE_BASE64 = ""
